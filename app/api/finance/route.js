@@ -23,12 +23,11 @@ export async function POST(request) {
     const doc = await getGoogleDoc();
     const sheet = doc.sheetsByIndex[0];
 
-    // Removed Category and Description from here
     await sheet.addRow({
       Date: body.date,
       Type: body.type,
       Amount: body.amount,
-      'Added By': 'Charan G', 
+      Item: body.item || '', 
     });
 
     return NextResponse.json({ message: 'Transaction added successfully!' }, { status: 200 });
@@ -44,27 +43,38 @@ export async function GET() {
     const sheet = doc.sheetsByIndex[0];
     const rows = await sheet.getRows();
 
-    let totalRevenue = 0;
-    let totalExpenses = 0;
+    // Create separate buckets for the math
+    let allTime = { revenue: 0, expenses: 0 };
+    let thisMonth = { revenue: 0, expenses: 0 };
+
+    // Get the current month and year to compare against the spreadsheet dates
+    const now = new Date();
+    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+    const currentYear = String(now.getFullYear());
 
     rows.forEach(row => {
       const amount = parseFloat(row.get('Amount')) || 0; 
       const type = row.get('Type');
+      const dateStr = row.get('Date'); // Looks like "YYYY-MM-DD"
+
+      // Check if this row belongs to the current month
+      const isThisMonth = dateStr && dateStr.startsWith(`${currentYear}-${currentMonth}`);
 
       if (type === 'Revenue') {
-        totalRevenue += amount;
+        allTime.revenue += amount;
+        if (isThisMonth) thisMonth.revenue += amount;
       } else if (type === 'Expense') {
-        totalExpenses += amount;
+        allTime.expenses += amount;
+        if (isThisMonth) thisMonth.expenses += amount;
       }
     });
 
-    const netProfit = totalRevenue - totalExpenses;
+    // Calculate profits
+    allTime.profit = allTime.revenue - allTime.expenses;
+    thisMonth.profit = thisMonth.revenue - thisMonth.expenses;
 
-    return NextResponse.json({ 
-      revenue: totalRevenue, 
-      expenses: totalExpenses, 
-      profit: netProfit 
-    }, { status: 200 });
+    // Send both sets of data to the frontend
+    return NextResponse.json({ allTime, thisMonth }, { status: 200 });
 
   } catch (error) {
     console.error('Spreadsheet GET Error Details:', error);
