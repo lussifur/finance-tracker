@@ -23,6 +23,7 @@ export async function POST(request) {
     const doc = await getGoogleDoc();
     const sheet = doc.sheetsByIndex[0];
 
+    // Removed the 'Added By' field entirely
     await sheet.addRow({
       Date: body.date,
       Type: body.type,
@@ -43,11 +44,10 @@ export async function GET() {
     const sheet = doc.sheetsByIndex[0];
     const rows = await sheet.getRows();
 
-    // Create separate buckets for the math
     let allTime = { revenue: 0, expenses: 0 };
     let thisMonth = { revenue: 0, expenses: 0 };
+    let history = []; 
 
-    // Get the current month and year to compare against the spreadsheet dates
     const now = new Date();
     const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
     const currentYear = String(now.getFullYear());
@@ -55,9 +55,8 @@ export async function GET() {
     rows.forEach(row => {
       const amount = parseFloat(row.get('Amount')) || 0; 
       const type = row.get('Type');
-      const dateStr = row.get('Date'); // Looks like "YYYY-MM-DD"
+      const dateStr = row.get('Date'); 
 
-      // Check if this row belongs to the current month
       const isThisMonth = dateStr && dateStr.startsWith(`${currentYear}-${currentMonth}`);
 
       if (type === 'Revenue') {
@@ -67,14 +66,24 @@ export async function GET() {
         allTime.expenses += amount;
         if (isThisMonth) thisMonth.expenses += amount;
       }
+
+      // Populate history without 'Added By', but ensuring we pull the 'Item' text
+      if (amount > 0) {
+        history.push({
+          date: dateStr,
+          type: type,
+          amount: amount,
+          item: row.get('Item') || ''
+        });
+      }
     });
 
-    // Calculate profits
     allTime.profit = allTime.revenue - allTime.expenses;
     thisMonth.profit = thisMonth.revenue - thisMonth.expenses;
 
-    // Send both sets of data to the frontend
-    return NextResponse.json({ allTime, thisMonth }, { status: 200 });
+    const recentHistory = history.reverse().slice(0, 5);
+
+    return NextResponse.json({ allTime, thisMonth, history: recentHistory }, { status: 200 });
 
   } catch (error) {
     console.error('Spreadsheet GET Error Details:', error);
