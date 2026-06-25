@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 const getTodayDate = () => {
   const d = new Date();
@@ -75,47 +76,36 @@ export default function Home() {
   return (
     <>
       <style>{`
-        * {
-          box-sizing: border-box;
-        }
-        .app-container {
-          padding: 2rem;
-          max-width: 600px;
-          margin: 0 auto;
-          font-family: sans-serif;
-        }
-        .dashboard-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 1rem;
-          margin-bottom: 2rem;
-        }
-        .history-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
+        * { box-sizing: border-box; }
+        .app-container { padding: 2rem; max-width: 600px; margin: 0 auto; font-family: sans-serif; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; }
         @media (max-width: 500px) {
-          .app-container {
-            padding: 1rem;
-          }
-          .dashboard-grid {
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
-          }
-          .history-item {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-          }
-          .history-amount {
-            align-self: flex-end;
-          }
+          .app-container { padding: 1rem; }
+          .dashboard-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+          .history-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+          .history-amount { align-self: flex-end; }
         }
       `}</style>
 
       <main className="app-container">
-        <h2 style={{ textAlign: 'center', marginBottom: '0.5rem' }}>Business Finance Tracker</h2>
+        <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>Business Finance Tracker</h2>
+        
+        {/* BIG BUTTON TO SWITCH TO PENDING */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}>
+          <Link href="/pending" style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#dd6b20', 
+            color: 'white',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            fontWeight: 'bold',
+            fontSize: '1.1rem',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+          }}>
+            Switch to Pending Dues ⇄
+          </Link>
+        </div>
         
         {/* TOGGLE SWITCH */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
@@ -236,7 +226,6 @@ export default function Home() {
             <p style={{ color: '#a0aec0', fontStyle: 'italic' }}>{isLoading ? 'Loading history...' : 'No recent transactions found.'}</p>
           )}
         </div>
-
       </main>
     </>
   );

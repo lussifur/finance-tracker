@@ -23,7 +23,6 @@ export async function POST(request) {
     const doc = await getGoogleDoc();
     const sheet = doc.sheetsByIndex[0];
 
-    // Removed the 'Added By' field entirely
     await sheet.addRow({
       Date: body.date,
       Type: body.type,
@@ -67,7 +66,6 @@ export async function GET() {
         if (isThisMonth) thisMonth.expenses += amount;
       }
 
-      // Populate history without 'Added By', but ensuring we pull the 'Item' text
       if (amount > 0) {
         history.push({
           date: dateStr,
